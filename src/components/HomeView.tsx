@@ -1,13 +1,33 @@
 import React, { useState } from 'react';
 import confetti from 'canvas-confetti';
-import { Sparkles, Heart, Calendar, Clock, MapPin, Shuffle, ChevronRight, Music, BookOpen, Image as ImageIcon, Flame } from 'lucide-react';
-import { DaysTogetherInfo, Memory, NotebookSettings } from '../types';
+import {
+  Sparkles,
+  Heart,
+  Calendar,
+  Clock,
+  MapPin,
+  Shuffle,
+  ChevronRight,
+  Music,
+  BookOpen,
+  Image as ImageIcon,
+  Flame,
+  Star,
+  Compass,
+  ArrowRight,
+  Quote,
+  TrendingUp,
+} from 'lucide-react';
+import { DaysTogetherInfo, Memory, NotebookSettings, SpecialDate, AppreciationNote } from '../types';
 import { formatFriendlyDate, getOnThisDayMemories } from '../utils/date';
+import { calculateMemoryStats } from '../utils/stats';
 
 interface HomeViewProps {
   settings: NotebookSettings;
   daysInfo: DaysTogetherInfo;
   memories: Memory[];
+  specialDates?: SpecialDate[];
+  appreciations?: AppreciationNote[];
   onSelectMemory: (memory: Memory) => void;
   onNavigateTab: (tab: string) => void;
   onOpenAddModal: () => void;
@@ -17,6 +37,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
   settings,
   daysInfo,
   memories,
+  specialDates = [],
+  appreciations = [],
   onSelectMemory,
   onNavigateTab,
   onOpenAddModal,
@@ -27,6 +49,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
     return activeMemories.length > 0 ? activeMemories[Math.floor(Math.random() * activeMemories.length)] : null;
   });
   const [isShuffling, setIsShuffling] = useState(false);
+
+  // Random Daily Love Note
+  const dailyNote = appreciations.length > 0 ? appreciations[0] : null;
+
+  // Stats calculation
+  const stats = calculateMemoryStats(memories);
 
   const handleShuffle = () => {
     if (activeMemories.length === 0) return;
@@ -55,8 +83,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
     .slice(0, 8);
 
   return (
-    <div className="space-y-10 pb-16">
-      {/* Hero Welcome & Days Counter */}
+    <div className="space-y-12 pb-16">
+      {/* ==========================================================
+          01. HERO WELCOME & DAYS TOGETHER COUNTER
+          ========================================================== */}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-stone-100/90 via-stone-50/70 to-white/90 dark:from-stone-900/90 dark:via-stone-900/60 dark:to-stone-950/90 border border-stone-200/80 dark:border-stone-800 p-6 sm:p-10 lg:p-12 shadow-sm">
         <div className="max-w-3xl mx-auto text-center space-y-4">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/50 border border-rose-200/60 dark:border-rose-900/40 text-rose-800 dark:text-rose-300 text-xs font-medium tracking-wide">
@@ -119,7 +149,88 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
       </section>
 
-      {/* "On This Day" Highlight (if match exists) */}
+      {/* ==========================================================
+          02. SIGNATURE IMMERSIVE PORTALS: 3D BOOK & CONSTELLATION
+          ========================================================== */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* 3D Memory Book Portal Card */}
+        <div
+          onClick={() => onNavigateTab('book')}
+          className="cursor-pointer group relative rounded-3xl overflow-hidden border border-amber-300/60 dark:border-amber-900/40 bg-gradient-to-br from-amber-50/80 via-stone-50/60 to-orange-50/80 dark:from-stone-900 dark:via-stone-900/80 dark:to-stone-950 p-6 sm:p-8 shadow-sm hover:shadow-xl transition-all duration-300"
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-3 flex-1">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-100/80 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 text-xs font-semibold uppercase tracking-wider">
+                <BookOpen className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                <span>Interactive 3D Experience</span>
+              </div>
+
+              <h3 className="font-serif text-2xl font-bold text-stone-900 dark:text-stone-100 group-hover:text-amber-700 dark:group-hover:text-amber-300 transition-colors">
+                Open 3D Memory Book
+              </h3>
+
+              <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed max-w-sm">
+                Turn authentic linen pages, inspect handwritten notes, and flip through our chapters in a realistic bound journal.
+              </p>
+
+              <div className="pt-2 text-xs font-semibold text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                <span>Enter Reading Room</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+              </div>
+            </div>
+
+            {/* Book Preview Thumbnail */}
+            <div className="w-24 sm:w-28 aspect-[3/4] rounded-xl overflow-hidden shadow-lg border border-amber-200 dark:border-amber-900/60 shrink-0 transform group-hover:rotate-2 transition-transform duration-300">
+              <img
+                src="/src/assets/images/notebook_leather_cover_1793956314854.jpg"
+                alt="3D Book Cover"
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Celestial Constellation Portal Card */}
+        <div
+          onClick={() => onNavigateTab('constellation')}
+          className="cursor-pointer group relative rounded-3xl overflow-hidden border border-purple-300/60 dark:border-purple-900/40 bg-gradient-to-br from-indigo-950 via-purple-950 to-stone-950 p-6 sm:p-8 shadow-sm hover:shadow-xl transition-all duration-300 text-white"
+        >
+          {/* Subtle Starfield Background */}
+          <div className="absolute inset-0 opacity-40 group-hover:opacity-60 transition-opacity pointer-events-none">
+            <img
+              src="/src/assets/images/celestial_memory_nebula_1793956314452.jpg"
+              alt="Cosmic Nebula"
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          <div className="relative z-10 space-y-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-purple-900/60 border border-purple-400/30 text-purple-200 text-xs font-semibold uppercase tracking-wider">
+              <Star className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
+              <span>Cosmic Visualizer</span>
+            </div>
+
+            <h3 className="font-serif text-2xl font-bold text-white group-hover:text-purple-200 transition-colors">
+              Constellation of Memories
+            </h3>
+
+            <p className="text-xs sm:text-sm text-purple-100/80 leading-relaxed max-w-sm">
+              Each memory becomes a shining star in our shared cosmos. Follow glowing connection lines across trips, dates, and seasons.
+            </p>
+
+            <div className="pt-2 text-xs font-semibold text-purple-300 flex items-center gap-1.5">
+              <span>Explore Starlight Map</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ==========================================================
+          03. "ON THIS DAY" ANNIVERSARY FLASHBACKS
+          ========================================================== */}
       {onThisDayMatches.length > 0 && (
         <section className="rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/50 p-6 sm:p-8">
           <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 text-xs font-bold uppercase tracking-wider mb-3">
@@ -160,7 +271,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </section>
       )}
 
-      {/* Photo Dump Horizontal Carousel */}
+      {/* ==========================================================
+          04. PHOTO DUMP HORIZONTAL CAROUSEL
+          ========================================================== */}
       {photoMemories.length > 0 && (
         <section className="space-y-4">
           <div className="flex items-center justify-between">
@@ -216,7 +329,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </section>
       )}
 
-      {/* Two-Column Featured Spotlight & Quick Portals */}
+      {/* ==========================================================
+          05. "TAKE ME BACK" SPOTLIGHT & QUICK PORTALS
+          ========================================================== */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column (2 spans): "Take Me Back" Random Memory Spotlight */}
         <div className="lg:col-span-2 rounded-3xl bg-stone-100/70 dark:bg-stone-900/80 border border-stone-200/80 dark:border-stone-800 p-6 sm:p-8 flex flex-col justify-between">
@@ -305,7 +420,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <div className="space-y-3 flex flex-col justify-between">
           <div
             onClick={() => onNavigateTab('journal')}
-            className="cursor-pointer group p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 hover:border-rose-300 dark:hover:border-rose-800 shadow-sm transition-all"
+            className="cursor-pointer group p-4 sm:p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 hover:border-rose-300 dark:hover:border-rose-800 shadow-sm transition-all"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -327,7 +442,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
           <div
             onClick={() => onNavigateTab('music')}
-            className="cursor-pointer group p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 hover:border-rose-300 dark:hover:border-rose-800 shadow-sm transition-all"
+            className="cursor-pointer group p-4 sm:p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 hover:border-rose-300 dark:hover:border-rose-800 shadow-sm transition-all"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -349,7 +464,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
           <div
             onClick={() => onNavigateTab('appreciation')}
-            className="cursor-pointer group p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 hover:border-rose-300 dark:hover:border-rose-800 shadow-sm transition-all"
+            className="cursor-pointer group p-4 sm:p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 hover:border-rose-300 dark:hover:border-rose-800 shadow-sm transition-all"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -371,7 +486,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
           <div
             onClick={() => onNavigateTab('timeline')}
-            className="cursor-pointer group p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 hover:border-rose-300 dark:hover:border-rose-800 shadow-sm transition-all"
+            className="cursor-pointer group p-4 sm:p-5 rounded-2xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 hover:border-rose-300 dark:hover:border-rose-800 shadow-sm transition-all"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -389,6 +504,144 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </div>
               <ChevronRight className="w-4 h-4 text-stone-400 group-hover:translate-x-1 transition-transform" />
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ==========================================================
+          06. UPCOMING SPECIAL DATES & DAILY LOVE NOTE
+          ========================================================== */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Daily Love Note */}
+        {dailyNote && (
+          <div className="rounded-3xl bg-rose-50/60 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900/40 p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-300 flex items-center gap-1.5">
+                  <Quote className="w-3.5 h-3.5" />
+                  <span>Love Note of the Day</span>
+                </span>
+                <span className="text-xs text-stone-400">{formatFriendlyDate(dailyNote.date)}</span>
+              </div>
+
+              <p className="font-handwriting text-2xl text-stone-800 dark:text-stone-100 leading-snug">
+                "{dailyNote.text}"
+              </p>
+            </div>
+
+            <div className="pt-4 flex items-center justify-between text-xs text-rose-600 dark:text-rose-400 font-semibold border-t border-rose-200/50 dark:border-rose-900/30">
+              <span>— With love, {dailyNote.author}</span>
+              <button
+                onClick={() => onNavigateTab('appreciation')}
+                className="hover:underline flex items-center gap-1"
+              >
+                <span>Open Jar</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Upcoming Special Dates Preview */}
+        <div className="rounded-3xl bg-stone-100/70 dark:bg-stone-900/80 border border-stone-200/80 dark:border-stone-800 p-6 sm:p-8 flex flex-col justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-serif text-lg font-bold text-stone-900 dark:text-stone-100 flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-amber-500" />
+                <span>Upcoming Milestones & Dates</span>
+              </h3>
+              <button
+                onClick={() => onNavigateTab('dates')}
+                className="text-xs font-semibold text-rose-600 dark:text-rose-400 hover:underline"
+              >
+                View All
+              </button>
+            </div>
+
+            <div className="space-y-2.5 pt-1">
+              {specialDates.slice(0, 3).map((sd) => (
+                <div
+                  key={sd.id}
+                  className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-stone-800/80 border border-stone-200/60 dark:border-stone-700/60 text-xs"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="text-base">{sd.emoji}</span>
+                    <div className="truncate">
+                      <span className="font-semibold text-stone-900 dark:text-stone-100 block truncate">
+                        {sd.title}
+                      </span>
+                      <span className="text-[11px] text-stone-500 dark:text-stone-400">
+                        {formatFriendlyDate(sd.date)}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 shrink-0">
+                    {sd.isRecurring ? 'Annual' : 'Special Date'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="pt-4 text-right">
+            <button
+              onClick={() => onNavigateTab('dates')}
+              className="text-xs font-semibold text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white inline-flex items-center gap-1"
+            >
+              <span>Manage Countdown Dates</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ==========================================================
+          07. MEMORY STATISTICS DASHBOARD STRIP
+          ========================================================== */}
+      <section className="rounded-3xl bg-white dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800 p-6 sm:p-8 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-6">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-rose-500" />
+            <h3 className="font-serif text-xl font-bold text-stone-900 dark:text-stone-100">
+              Our Memory Archive by the Numbers
+            </h3>
+          </div>
+          <button
+            onClick={() => onNavigateTab('stats')}
+            className="text-xs font-semibold text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-1"
+          >
+            <span>Full Insights Dashboard</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+          <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-100 dark:border-stone-700/60">
+            <span className="font-mono text-2xl sm:text-3xl font-extrabold text-stone-900 dark:text-stone-100 tabular-nums">
+              {stats.totalMemories}
+            </span>
+            <span className="text-xs text-stone-500 dark:text-stone-400 block mt-1">Total Stories</span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-100 dark:border-stone-700/60">
+            <span className="font-mono text-2xl sm:text-3xl font-extrabold text-rose-600 dark:text-rose-400 tabular-nums">
+              {stats.totalPhotos}
+            </span>
+            <span className="text-xs text-stone-500 dark:text-stone-400 block mt-1">Photos Captured</span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-100 dark:border-stone-700/60">
+            <span className="font-mono text-2xl sm:text-3xl font-extrabold text-amber-600 dark:text-amber-400 tabular-nums">
+              {stats.totalCoreMemories}
+            </span>
+            <span className="text-xs text-stone-500 dark:text-stone-400 block mt-1">Core Milestones</span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-stone-50 dark:bg-stone-800/60 border border-stone-100 dark:border-stone-700/60">
+            <span className="font-mono text-2xl sm:text-3xl font-extrabold text-purple-600 dark:text-purple-400 tabular-nums">
+              {stats.totalJournalWords.toLocaleString()}
+            </span>
+            <span className="text-xs text-stone-500 dark:text-stone-400 block mt-1">Words Written</span>
           </div>
         </div>
       </section>

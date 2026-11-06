@@ -16,6 +16,8 @@ import {
   BarChart3,
   Calendar,
   ChevronDown,
+  BookOpen,
+  Star,
 } from 'lucide-react';
 import { NotebookSettings, SyncState } from '../types';
 
@@ -58,6 +60,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   ];
 
   const secondaryNavItems = [
+    { id: 'book', label: '3D Memory Book', icon: BookOpen },
+    { id: 'constellation', label: 'Constellation', icon: Star },
     { id: 'collections', label: 'Collections', icon: FolderHeart },
     { id: 'map', label: 'Memory Map', icon: Compass },
     { id: 'dates', label: 'Special Dates', icon: Calendar },

@@ -41,6 +41,8 @@ import { CollectionsView } from './components/CollectionsView';
 import { MapView } from './components/MapView';
 import { SpecialDatesView } from './components/SpecialDatesView';
 import { StatsView } from './components/StatsView';
+import { MemoryBookView } from './components/MemoryBookView';
+import { ConstellationView } from './components/ConstellationView';
 
 import { MemoryModal } from './components/MemoryModal';
 import { AddMemoryModal } from './components/AddMemoryModal';
@@ -332,6 +334,8 @@ export default function App() {
             settings={settings}
             daysInfo={daysInfo}
             memories={memories}
+            specialDates={specialDates}
+            appreciations={appreciations}
             onSelectMemory={(m) => setSelectedMemory(m)}
             onNavigateTab={(tab) => setActiveTab(tab)}
             onOpenAddModal={() => setIsAddModalOpen(true)}
@@ -343,6 +347,27 @@ export default function App() {
             memories={memories}
             onSelectMemory={(m) => setSelectedMemory(m)}
             onToggleFavorite={handleToggleFavorite}
+            onOpenAddModal={() => setIsAddModalOpen(true)}
+          />
+        )}
+
+        {activeTab === 'book' && (
+          <MemoryBookView
+            settings={settings}
+            memories={memories}
+            onSelectMemory={(m) => setSelectedMemory(m)}
+            onNavigateTab={(tab) => setActiveTab(tab)}
+            onOpenAddModal={() => setIsAddModalOpen(true)}
+          />
+        )}
+
+        {activeTab === 'constellation' && (
+          <ConstellationView
+            settings={settings}
+            memories={memories}
+            collections={collections}
+            onSelectMemory={(m) => setSelectedMemory(m)}
+            onNavigateTab={(tab) => setActiveTab(tab)}
             onOpenAddModal={() => setIsAddModalOpen(true)}
           />
         )}

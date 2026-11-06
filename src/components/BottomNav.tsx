@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Home, Image, BookOpen, Plus, Sparkles, FolderHeart, Compass, BarChart3, Calendar, MoreHorizontal, X } from 'lucide-react';
+import { Home, Image, BookOpen, Plus, Sparkles, FolderHeart, Compass, BarChart3, Calendar, MoreHorizontal, X, Star } from 'lucide-react';
 
 interface BottomNavProps {
   activeTab: string;
@@ -15,6 +15,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const moreItems = [
+    { id: 'book', label: '3D Memory Book', icon: BookOpen },
+    { id: 'constellation', label: 'Constellation', icon: Star },
     { id: 'core', label: 'Core Moments', icon: Sparkles },
     { id: 'timeline', label: 'Timeline', icon: Calendar },
     { id: 'collections', label: 'Collections', icon: FolderHeart },
