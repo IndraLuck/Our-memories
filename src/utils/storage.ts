@@ -1,9 +1,17 @@
-import { AppreciationNote, BackupPayload, Memory, NotebookSettings } from '../types';
-import { DEFAULT_SETTINGS, INITIAL_APPRECIATIONS, INITIAL_MEMORIES } from './defaultData';
+import { AppreciationNote, BackupPayload, Collection, Memory, NotebookSettings, SpecialDate } from '../types';
+import {
+  DEFAULT_SETTINGS,
+  INITIAL_APPRECIATIONS,
+  INITIAL_COLLECTIONS,
+  INITIAL_MEMORIES,
+  INITIAL_SPECIAL_DATES,
+} from './defaultData';
 
-const SETTINGS_KEY = 'omn_settings_v2';
-const MEMORIES_KEY = 'omn_memories_v2';
-const APPRECIATIONS_KEY = 'omn_appreciations_v2';
+const SETTINGS_KEY = 'omn_settings_v3';
+const MEMORIES_KEY = 'omn_memories_v3';
+const APPRECIATIONS_KEY = 'omn_appreciations_v3';
+const COLLECTIONS_KEY = 'omn_collections_v3';
+const SPECIAL_DATES_KEY = 'omn_special_dates_v3';
 
 /**
  * Robust image compressor using an offscreen canvas.
@@ -11,7 +19,6 @@ const APPRECIATIONS_KEY = 'omn_appreciations_v2';
  */
 export async function compressImageFile(file: File, maxWidth = 1280, quality = 0.82): Promise<string> {
   return new Promise((resolve, reject) => {
-    // If not an image, reject safely
     if (!file.type.startsWith('image/')) {
       reject(new Error('Selected file is not an image.'));
       return;
@@ -41,14 +48,12 @@ export async function compressImageFile(file: File, maxWidth = 1280, quality = 0
 
         const ctx = canvas.getContext('2d');
         if (!ctx) {
-          // Fallback to original base64 if canvas context fails
           resolve(e.target?.result as string);
           return;
         }
 
         ctx.drawImage(img, 0, 0, width, height);
 
-        // Try WebP first, fallback to JPEG
         let dataUrl = canvas.toDataURL('image/webp', quality);
         if (!dataUrl.startsWith('data:image/webp')) {
           dataUrl = canvas.toDataURL('image/jpeg', quality);
@@ -64,7 +69,7 @@ export async function compressImageFile(file: File, maxWidth = 1280, quality = 0
 }
 
 /**
- * Load settings safely from localStorage with fallback
+ * Settings storage
  */
 export function loadSettings(): NotebookSettings {
   try {
@@ -78,9 +83,6 @@ export function loadSettings(): NotebookSettings {
   }
 }
 
-/**
- * Save settings to localStorage
- */
 export function saveSettings(settings: NotebookSettings): void {
   try {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
@@ -90,7 +92,7 @@ export function saveSettings(settings: NotebookSettings): void {
 }
 
 /**
- * Load memories safely from storage (with default initial memories if first visit)
+ * Memories storage
  */
 export function loadMemories(): Memory[] {
   try {
@@ -110,9 +112,6 @@ export function loadMemories(): Memory[] {
   }
 }
 
-/**
- * Save memories to storage
- */
 export function saveMemories(memories: Memory[]): void {
   try {
     localStorage.setItem(MEMORIES_KEY, JSON.stringify(memories));
@@ -122,7 +121,57 @@ export function saveMemories(memories: Memory[]): void {
 }
 
 /**
- * Load appreciation notes
+ * Collections storage
+ */
+export function loadCollections(): Collection[] {
+  try {
+    const raw = localStorage.getItem(COLLECTIONS_KEY);
+    if (!raw) {
+      saveCollections(INITIAL_COLLECTIONS);
+      return INITIAL_COLLECTIONS;
+    }
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : INITIAL_COLLECTIONS;
+  } catch {
+    return INITIAL_COLLECTIONS;
+  }
+}
+
+export function saveCollections(collections: Collection[]): void {
+  try {
+    localStorage.setItem(COLLECTIONS_KEY, JSON.stringify(collections));
+  } catch (err) {
+    console.error('Failed to save collections', err);
+  }
+}
+
+/**
+ * Special Dates storage
+ */
+export function loadSpecialDates(): SpecialDate[] {
+  try {
+    const raw = localStorage.getItem(SPECIAL_DATES_KEY);
+    if (!raw) {
+      saveSpecialDates(INITIAL_SPECIAL_DATES);
+      return INITIAL_SPECIAL_DATES;
+    }
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : INITIAL_SPECIAL_DATES;
+  } catch {
+    return INITIAL_SPECIAL_DATES;
+  }
+}
+
+export function saveSpecialDates(dates: SpecialDate[]): void {
+  try {
+    localStorage.setItem(SPECIAL_DATES_KEY, JSON.stringify(dates));
+  } catch (err) {
+    console.error('Failed to save special dates', err);
+  }
+}
+
+/**
+ * Appreciation notes storage
  */
 export function loadAppreciations(): AppreciationNote[] {
   try {
@@ -133,14 +182,11 @@ export function loadAppreciations(): AppreciationNote[] {
     }
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : INITIAL_APPRECIATIONS;
-  } catch (err) {
+  } catch {
     return INITIAL_APPRECIATIONS;
   }
 }
 
-/**
- * Save appreciation notes
- */
 export function saveAppreciations(notes: AppreciationNote[]): void {
   try {
     localStorage.setItem(APPRECIATIONS_KEY, JSON.stringify(notes));
@@ -150,18 +196,22 @@ export function saveAppreciations(notes: AppreciationNote[]): void {
 }
 
 /**
- * Generate full JSON backup file string
+ * Full JSON backup generation
  */
 export function generateBackup(
   memories: Memory[],
   settings: NotebookSettings,
-  appreciationNotes: AppreciationNote[]
+  appreciationNotes: AppreciationNote[],
+  collections?: Collection[],
+  specialDates?: SpecialDate[]
 ): BackupPayload {
   return {
-    version: '2.0.0',
+    version: '3.0.0',
     exportedAt: new Date().toISOString(),
     settings,
     memories,
+    collections: collections || loadCollections(),
+    specialDates: specialDates || loadSpecialDates(),
     appreciationNotes,
   };
 }
@@ -206,7 +256,6 @@ export function validateAndParseBackup(jsonString: string): {
       return { isValid: false, error: 'Backup does not contain a valid memories list.' };
     }
 
-    // Verify memory integrity
     for (const mem of parsed.memories) {
       if (!mem.id || !mem.title || !mem.date) {
         return { isValid: false, error: 'One or more memories have missing required fields (id, title, date).' };
@@ -214,10 +263,12 @@ export function validateAndParseBackup(jsonString: string): {
     }
 
     const validPayload: BackupPayload = {
-      version: parsed.version || '2.0.0',
+      version: parsed.version || '3.0.0',
       exportedAt: parsed.exportedAt || new Date().toISOString(),
       settings: parsed.settings && typeof parsed.settings === 'object' ? { ...DEFAULT_SETTINGS, ...parsed.settings } : DEFAULT_SETTINGS,
       memories: parsed.memories,
+      collections: Array.isArray(parsed.collections) ? parsed.collections : INITIAL_COLLECTIONS,
+      specialDates: Array.isArray(parsed.specialDates) ? parsed.specialDates : INITIAL_SPECIAL_DATES,
       appreciationNotes: Array.isArray(parsed.appreciationNotes) ? parsed.appreciationNotes : [],
     };
 

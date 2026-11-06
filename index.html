@@ -3,6 +3,48 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+    <script>
+      // Compatibility shim for browser extensions and iframe environments where window.fetch only has a getter
+      (function() {
+        try {
+          var originalFetch = window.fetch;
+          var currentFetch = originalFetch;
+          Object.defineProperty(window, 'fetch', {
+            get: function() {
+              return currentFetch;
+            },
+            set: function(fn) {
+              currentFetch = fn;
+            },
+            configurable: true,
+            enumerable: true
+          });
+        } catch (e) {
+          try {
+            var protoFetch = Window.prototype.fetch;
+            Object.defineProperty(Window.prototype, 'fetch', {
+              get: function() {
+                return this === window ? currentFetch : protoFetch;
+              },
+              set: function(fn) {
+                currentFetch = fn;
+              },
+              configurable: true,
+              enumerable: true
+            });
+          } catch (err) {}
+        }
+
+        // Prevent external Chrome/Firefox browser extension errors from bubbling into app runtime
+        window.addEventListener('error', function(event) {
+          if (event.filename && (event.filename.indexOf('extension://') !== -1 || event.filename.indexOf('requests.js') !== -1)) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+            return true;
+          }
+        }, true);
+      })();
+    </script>
     <title>Our Memory Notebook — A Private Digital Sanctuary for Two</title>
     <meta name="description" content="A private, beautiful digital world for two to preserve memories, photos, journals, milestones, and soundtracks across time." />
     <meta property="og:title" content="Our Memory Notebook" />

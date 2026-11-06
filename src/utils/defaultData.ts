@@ -1,4 +1,4 @@
-import { AppreciationNote, Memory, Milestone, NotebookSettings } from '../types';
+import { AppreciationNote, Collection, Memory, Milestone, NotebookSettings, SpecialDate } from '../types';
 
 export const DEFAULT_SETTINGS: NotebookSettings = {
   person1: 'Maya',
@@ -248,3 +248,79 @@ export const INITIAL_APPRECIATIONS: AppreciationNote[] = [
     date: '2024-10-25',
   },
 ];
+
+export const INITIAL_COLLECTIONS: Collection[] = [
+  {
+    id: 'col-1',
+    name: 'Dates',
+    description: 'Candlelight dinners, picnics, and romantic evenings',
+    createdAt: '2023-04-14T00:00:00Z',
+    isFavorite: true,
+  },
+  {
+    id: 'col-2',
+    name: 'Trips',
+    description: 'Highway 1, coastal air, and mountain getaways',
+    createdAt: '2023-08-12T00:00:00Z',
+    isFavorite: true,
+  },
+  {
+    id: 'col-3',
+    name: 'Milestones',
+    description: 'First dates, apartment keys, and life decisions',
+    createdAt: '2023-04-14T00:00:00Z',
+    isFavorite: true,
+  },
+  {
+    id: 'col-4',
+    name: 'Late Nights',
+    description: 'Midnight campfires, stargazing, and deep conversations',
+    createdAt: '2023-09-22T00:00:00Z',
+  },
+  {
+    id: 'col-5',
+    name: 'Little Things',
+    description: 'Corner bakery mornings, rainy ramen, and everyday quiet magic',
+    createdAt: '2024-02-11T00:00:00Z',
+  },
+];
+
+export const INITIAL_SPECIAL_DATES: SpecialDate[] = [
+  {
+    id: 'sd-1',
+    title: 'Our Relationship Anniversary',
+    date: '2023-04-14',
+    category: 'anniversary',
+    emoji: '🥂',
+    isRecurring: true,
+    note: 'The day we officially began our story together',
+  },
+  {
+    id: 'sd-2',
+    title: "Maya's Birthday",
+    date: '2024-09-14',
+    category: 'birthday',
+    emoji: '🎂',
+    isRecurring: true,
+    note: 'Celebrate with lavender cake and handwritten letter',
+  },
+  {
+    id: 'sd-3',
+    title: "Alex's Birthday",
+    date: '2024-11-28',
+    category: 'birthday',
+    emoji: '🎉',
+    isRecurring: true,
+    note: 'Surprise weekend getaway',
+  },
+  {
+    id: 'sd-4',
+    title: 'Autumn in Kyoto Trip',
+    date: '2027-10-15',
+    category: 'trip',
+    emoji: '✈️',
+    isRecurring: false,
+    note: 'Wandering through the red maple gardens together',
+  },
+];
+

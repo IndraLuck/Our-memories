@@ -4,7 +4,15 @@
  */
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { Memory, NotebookSettings, AppreciationNote, ThemeName } from './types';
+import {
+  Memory,
+  NotebookSettings,
+  AppreciationNote,
+  Collection,
+  SpecialDate,
+  ThemeName,
+  SyncState,
+} from './types';
 import {
   loadMemories,
   saveMemories,
@@ -12,8 +20,14 @@ import {
   saveSettings,
   loadAppreciations,
   saveAppreciations,
+  loadCollections,
+  saveCollections,
+  loadSpecialDates,
+  saveSpecialDates,
 } from './utils/storage';
 import { calculateDaysTogether } from './utils/date';
+import { getAuthSession, signOutUser, syncMemoriesToCloud, getSupabaseClient } from './utils/supabase';
+
 import { Navbar } from './components/Navbar';
 import { BottomNav } from './components/BottomNav';
 import { HomeView } from './components/HomeView';
@@ -23,19 +37,48 @@ import { CoreMemoriesView } from './components/CoreMemoriesView';
 import { TimelineView } from './components/TimelineView';
 import { MusicView } from './components/MusicView';
 import { AppreciationView } from './components/AppreciationView';
+import { CollectionsView } from './components/CollectionsView';
+import { MapView } from './components/MapView';
+import { SpecialDatesView } from './components/SpecialDatesView';
+import { StatsView } from './components/StatsView';
+
 import { MemoryModal } from './components/MemoryModal';
 import { AddMemoryModal } from './components/AddMemoryModal';
 import { SettingsModal } from './components/SettingsModal';
+import { AuthModal } from './components/AuthModal';
+import { SearchModal } from './components/SearchModal';
 
 export default function App() {
   const [settings, setSettings] = useState<NotebookSettings>(loadSettings);
   const [memories, setMemories] = useState<Memory[]>(loadMemories);
   const [appreciations, setAppreciations] = useState<AppreciationNote[]>(loadAppreciations);
+  const [collections, setCollections] = useState<Collection[]>(loadCollections);
+  const [specialDates, setSpecialDates] = useState<SpecialDate[]>(loadSpecialDates);
 
   const [activeTab, setActiveTab] = useState('home');
   const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+
+  // Authentication & Cloud Sync status
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [syncState, setSyncState] = useState<SyncState>('local_only');
+
+  // Check initial authentication
+  useEffect(() => {
+    async function checkAuth() {
+      const user = await getAuthSession();
+      if (user?.email) {
+        setUserEmail(user.email);
+        setSyncState('synced');
+      } else {
+        setSyncState('local_only');
+      }
+    }
+    checkAuth();
+  }, [settings.supabaseUrl, settings.supabaseAnonKey]);
 
   // Live days-together calculation
   const daysInfo = useMemo(() => {
@@ -52,18 +95,24 @@ export default function App() {
     }
   }, [settings.theme]);
 
-  // Keyboard shortcut: ESC closes open modal
+  // Global Keyboard shortcuts: ESC closes modals, Ctrl+K or Cmd+K opens Search
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchModalOpen((prev) => !prev);
+      }
       if (e.key === 'Escape') {
         if (selectedMemory) setSelectedMemory(null);
+        else if (isSearchModalOpen) setIsSearchModalOpen(false);
+        else if (isAuthModalOpen) setIsAuthModalOpen(false);
         else if (isAddModalOpen) setIsAddModalOpen(false);
         else if (isSettingsModalOpen) setIsSettingsModalOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedMemory, isAddModalOpen, isSettingsModalOpen]);
+  }, [selectedMemory, isSearchModalOpen, isAuthModalOpen, isAddModalOpen, isSettingsModalOpen]);
 
   // Memory Handlers
   const handleSaveMemory = (newMemData: Omit<Memory, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -79,6 +128,17 @@ export default function App() {
       saveMemories(updated);
       return updated;
     });
+
+    // Optional cloud sync in background if user is authenticated
+    if (userEmail && settings.supabaseUrl && settings.supabaseAnonKey) {
+      setSyncState('syncing');
+      syncMemoriesToCloud([newMemory, ...memories], settings.supabaseUrl, settings.supabaseAnonKey)
+        .then((res) => {
+          if (res.success) setSyncState('synced');
+          else setSyncState('error');
+        })
+        .catch(() => setSyncState('error'));
+    }
   };
 
   const handleToggleFavorite = (id: string, e?: React.MouseEvent) => {
@@ -105,7 +165,6 @@ export default function App() {
   };
 
   const handleDeleteMemory = (id: string) => {
-    // Soft delete to Recently Deleted
     setMemories((prev) => {
       const updated = prev.map((m) =>
         m.id === id ? { ...m, deletedAt: new Date().toISOString() } : m
@@ -189,9 +248,52 @@ export default function App() {
     });
   };
 
+  const handleAddCollection = (newCol: Omit<Collection, 'id' | 'createdAt'>) => {
+    const col: Collection = {
+      ...newCol,
+      id: `col-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+    };
+    setCollections((prev) => {
+      const updated = [col, ...prev];
+      saveCollections(updated);
+      return updated;
+    });
+  };
+
+  const handleAddSpecialDate = (newDate: Omit<SpecialDate, 'id'>) => {
+    const sd: SpecialDate = {
+      ...newDate,
+      id: `sd-${Date.now()}`,
+    };
+    setSpecialDates((prev) => {
+      const updated = [sd, ...prev];
+      saveSpecialDates(updated);
+      return updated;
+    });
+  };
+
+  const handleDeleteSpecialDate = (id: string) => {
+    setSpecialDates((prev) => {
+      const updated = prev.filter((d) => d.id !== id);
+      saveSpecialDates(updated);
+      return updated;
+    });
+  };
+
+  const handleAuthSuccess = (email: string) => {
+    setUserEmail(email);
+    setSyncState('synced');
+  };
+
+  const handleSignOut = async () => {
+    await signOutUser();
+    setUserEmail(null);
+    setSyncState('local_only');
+  };
+
   const recentlyDeletedCount = memories.filter((m) => !!m.deletedAt).length;
 
-  // Background and theme tint wrappers
   const getThemeWrapperClass = () => {
     switch (settings.theme) {
       case 'lavender':
@@ -213,8 +315,12 @@ export default function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         settings={settings}
+        syncState={syncState}
+        userEmail={userEmail}
         onOpenAddModal={() => setIsAddModalOpen(true)}
         onOpenSettingsModal={() => setIsSettingsModalOpen(true)}
+        onOpenSearchModal={() => setIsSearchModalOpen(true)}
+        onOpenAuthModal={() => setIsAuthModalOpen(true)}
         onToggleTheme={handleToggleTheme}
         recentlyDeletedCount={recentlyDeletedCount}
       />
@@ -264,6 +370,39 @@ export default function App() {
             memories={memories}
             onSelectMemory={(m) => setSelectedMemory(m)}
             onOpenAddModal={() => setIsAddModalOpen(true)}
+          />
+        )}
+
+        {activeTab === 'collections' && (
+          <CollectionsView
+            collections={collections}
+            memories={memories}
+            onSelectMemory={(m) => setSelectedMemory(m)}
+            onAddCollection={handleAddCollection}
+          />
+        )}
+
+        {activeTab === 'map' && (
+          <MapView
+            memories={memories}
+            onSelectMemory={(m) => setSelectedMemory(m)}
+          />
+        )}
+
+        {activeTab === 'dates' && (
+          <SpecialDatesView
+            specialDates={specialDates}
+            onAddSpecialDate={handleAddSpecialDate}
+            onDeleteSpecialDate={handleDeleteSpecialDate}
+          />
+        )}
+
+        {activeTab === 'stats' && (
+          <StatsView
+            memories={memories}
+            daysInfo={daysInfo}
+            person1={settings.person1}
+            person2={settings.person2}
           />
         )}
 
@@ -318,6 +457,21 @@ export default function App() {
         onRestoreFromTrash={handleRestoreFromTrash}
         onPermanentlyDelete={handlePermanentlyDelete}
         onClearAll={handleClearAll}
+      />
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        currentUserEmail={userEmail}
+        onAuthSuccess={handleAuthSuccess}
+        onSignOut={handleSignOut}
+      />
+
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        memories={memories}
+        onSelectMemory={(m) => setSelectedMemory(m)}
       />
     </div>
   );
