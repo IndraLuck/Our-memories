@@ -1,0 +1,6 @@
+{
+  "name": "Our Memory Notebook",
+  "description": "A private, beautiful digital world for two to preserve memories, photos, journals, milestones, and soundtracks across time.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

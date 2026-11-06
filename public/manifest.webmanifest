@@ -1,0 +1,16 @@
+{
+  "name": "Our Memory Notebook",
+  "short_name": "MemoryBook",
+  "description": "A private, beautiful digital world for two to preserve memories, photos, journals, milestones, and soundtracks across time.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#FAF7F5",
+  "theme_color": "#FAF7F5",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
